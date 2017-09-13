@@ -1,7 +1,5 @@
 package ChatMessage;
 
-import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -11,9 +9,9 @@ import java.util.Date;
  */
 public class ChatMessage {
 
-    String message;
-    String sender;
-    Date sendTime;
+    private String message;
+    private String sender;
+    private Date sendTime;
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM 'at' HH:mm");
 

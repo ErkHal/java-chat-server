@@ -7,7 +7,10 @@ import UserNameList.UserNameList;
 
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Scanner;
 
 /**
  * @author ErkHal
@@ -62,6 +65,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                 String message;
                 message = scanner.nextLine();
+                message = message.trim();
 
                 //Checks if given message is a command
                 if (commandSet.contains(message)) {
@@ -108,8 +112,6 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                             String possibleUserName = input.trim();
 
                             if (possibleUserName.length() >= 2 && possibleUserName.length() <= MAX_USERNAME_LENGTH && !possibleUserName.equals(SERVER_USERNAME)) {
-
-                                printStream.println(possibleUserName.length());
 
                                 if (!(UserNameList.checkIfUserExists(possibleUserName))) {
 
@@ -159,12 +161,17 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         //Sends message to server
                     } else if (this.userName != null) {
 
-                        Calendar calendar = Calendar.getInstance();
-                        Date dateTime = calendar.getTime();
-                        ChatMessage msg = new ChatMessage(message, this.userName, dateTime);
-                        ChatHistory.getInstance().insertMessage(msg);
+                        if(!message.equals("")) {
 
-                        System.out.println(msg.toString());
+                            Calendar calendar = Calendar.getInstance();
+                            Date dateTime = calendar.getTime();
+                            ChatMessage msg = new ChatMessage(message, this.userName, dateTime);
+                            ChatHistory.getInstance().insertMessage(msg);
+
+                        } else {
+
+                            printStream.println("Cannot send an empty message");
+                        }
 
                     } else {
 
@@ -183,23 +190,23 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
     /**
      * Loads the commandset with commands
-     * @return
+     * @return commandList
      */
     private HashSet<String> loadCommandSet() {
 
-        HashSet<String> tempList = new HashSet<String>();
+        HashSet<String> commandSet = new HashSet<>();
 
-        tempList.add(COMMAND_SYMBOL + "help" + COMMAND_SYMBOL);
-        tempList.add(COMMAND_SYMBOL + "user" + COMMAND_SYMBOL);
-        tempList.add(COMMAND_SYMBOL + "history" + COMMAND_SYMBOL);
-        tempList.add(COMMAND_SYMBOL + "quit" + COMMAND_SYMBOL);
+        commandSet.add(COMMAND_SYMBOL + "help" + COMMAND_SYMBOL);
+        commandSet.add(COMMAND_SYMBOL + "user" + COMMAND_SYMBOL);
+        commandSet.add(COMMAND_SYMBOL + "history" + COMMAND_SYMBOL);
+        commandSet.add(COMMAND_SYMBOL + "quit" + COMMAND_SYMBOL);
 
-        return tempList;
+        return commandSet;
     }
 
     /**
      * Updates the client's chat history
-     * @param chatMessage
+     * @param chatMessage a ChatMessage object. Contains sender, timestamp and message.
      */
     @Override
     public void update(ChatMessage chatMessage) {
