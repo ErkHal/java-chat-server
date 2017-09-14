@@ -59,7 +59,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                 if (!helpDisplayed) {
                     printStream.println("Connection established ! ");
-                    printStream.println("Type " + COMMAND_SYMBOL + "help" + COMMAND_SYMBOL + " for help \r\n");
+                    printStream.println("Type " + COMMAND_SYMBOL + "help" + COMMAND_SYMBOL + " for help \n");
                     helpDisplayed = true;
                 }
 
@@ -72,12 +72,12 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                     if (message.substring(1, message.length() - 1).equals("help")) {
 
-                        printStream.println("\r\n        All commands and their explanations: \r\n" +
-                                "------------------------------------------------------------------\r\n" +
-                                COMMAND_SYMBOL + "help" + COMMAND_SYMBOL + " - Displays this list of commands" + "\r\n" +
-                                COMMAND_SYMBOL + "user" + COMMAND_SYMBOL + " - Sets username. Must be set before messaging and can only be set once per session." + "\r\n" +
-                                COMMAND_SYMBOL + "history" + COMMAND_SYMBOL + " - Displays message history" + "\r\n" +
-                                COMMAND_SYMBOL + "quit" + COMMAND_SYMBOL + " - Disconnects user from the chat" + "\r\n");
+                        printStream.println("\n        All commands and their explanations: \n" +
+                                "------------------------------------------------------------------\n" +
+                                COMMAND_SYMBOL + "help" + COMMAND_SYMBOL + " - Displays this list of commands" + "\n" +
+                                COMMAND_SYMBOL + "user" + COMMAND_SYMBOL + " - Sets username. Must be set before messaging and can only be set once per session." + "\n" +
+                                COMMAND_SYMBOL + "history" + COMMAND_SYMBOL + " - Displays message history" + "\n" +
+                                COMMAND_SYMBOL + "quit" + COMMAND_SYMBOL + " - Disconnects user from the chat" + "\n");
                     }
 
                     //Quit cmd functionality

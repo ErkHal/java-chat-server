@@ -51,11 +51,11 @@ public class ChatHistory implements ChatHistoryObservable {
     public String toString() {
 
         String wholeMessageHistory = "";
-        wholeMessageHistory += "---- START OF CHAT HISTORY ----\r\n";
+        wholeMessageHistory += "---- START OF CHAT HISTORY ----\n";
 
         for(ChatMessage msg : this.messageHistory) {
 
-            wholeMessageHistory += msg.toString() + "\r\n";
+            wholeMessageHistory += msg.toString() + "\n";
         }
 
         wholeMessageHistory += "---- END OF CHAT HISTORY ----";
