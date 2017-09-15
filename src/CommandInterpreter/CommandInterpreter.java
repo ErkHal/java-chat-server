@@ -3,14 +3,12 @@ package CommandInterpreter;
 import ChatHistory.ChatHistory;
 import ChatHistoryInterfaces.ChatHistoryObserver;
 import ChatMessage.ChatMessage;
-import UserNameList.UserNameList;
+import User.User;
+import UsersList.UsersList;
 
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * @author ErkHal
@@ -24,7 +22,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
     private PrintStream printStream;
     private Scanner scanner;
     private HashSet<String> commandSet;
-    private String userName;
+    private User user;
 
     //Command recognition symbol. A command has to start and end with this symbol.
     private static final char COMMAND_SYMBOL = '%';
@@ -35,13 +33,18 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
     //Maximum user name length
     private static final int MAX_USERNAME_LENGTH = 12;
 
+    /**
+     * Constructor for CommandInterpreter. Declares a null user first before setting name. Assigns default channel first.
+     * @param inputStream
+     * @param printStream
+     */
     public CommandInterpreter(InputStream inputStream, PrintStream printStream) {
 
         this.inputStream = inputStream;
         this.printStream = printStream;
         this.scanner = new Scanner(inputStream);
         this.commandSet = loadCommandSet();
-        this.userName = null;
+        this.user = new User("", "Lobby");
 
     }
 
@@ -59,7 +62,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                 if (!helpDisplayed) {
                     printStream.println("Connection established ! ");
-                    printStream.println("Type " + COMMAND_SYMBOL + "help" + COMMAND_SYMBOL + " for help \n");
+                    printStream.println("Type " + COMMAND_SYMBOL + "help for help \n");
                     helpDisplayed = true;
                 }
 
@@ -70,29 +73,32 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                 //Checks if given message is a command
                 if (commandSet.contains(message)) {
 
-                    if (message.substring(1, message.length() - 1).equals("help")) {
+                    if (message.equals(COMMAND_SYMBOL + "help")) {
 
-                        printStream.println("\n        All commands and their explanations: \n" +
-                                "------------------------------------------------------------------\n" +
-                                COMMAND_SYMBOL + "help" + COMMAND_SYMBOL + " - Displays this list of commands" + "\n" +
-                                COMMAND_SYMBOL + "user" + COMMAND_SYMBOL + " - Sets username. Must be set before messaging and can only be set once per session." + "\n" +
-                                COMMAND_SYMBOL + "history" + COMMAND_SYMBOL + " - Displays message history" + "\n" +
-                                COMMAND_SYMBOL + "quit" + COMMAND_SYMBOL + " - Disconnects user from the chat" + "\n");
+                        printStream.println("\n        All commands and their explanations: \r\n" +
+                                "------------------------------------------------------------------\r\n" +
+                                COMMAND_SYMBOL + "help - Displays this list of commands\r\n" +
+                                COMMAND_SYMBOL + "user - Sets username. Must be set before messaging !\r\n" +
+                                COMMAND_SYMBOL + "history - Displays message history for this channel\r\n" +
+                                COMMAND_SYMBOL + "channel - Displays your current channel and all users in this channel\r\n" +
+                                COMMAND_SYMBOL + "join -  Join another channel with this command\r\n" +
+                                COMMAND_SYMBOL + "online - Displays every user online\r\n" +
+                                COMMAND_SYMBOL + "quit - Disconnects user from the chat \r\n");
                     }
 
                     //Quit cmd functionality
-                    if (message.substring(1, message.length() - 1).equals("quit")) {
+                    if (message.equals(COMMAND_SYMBOL + "quit")) {
 
-                        printStream.println("Goodbye " + this.userName + "!");
+                        printStream.println("Goodbye " + this.user.getUserName() + "!");
                         inputStream.close();
                     }
 
                     //History cmd functionality. Cannot see history without username.
-                    if (message.substring(1, message.length() - 1).equals("history")) {
+                    if (message.equals(COMMAND_SYMBOL + "history")) {
 
-                        if(!this.userName.equals("")) {
+                        if(!this.user.getUserName().equals("")) {
                             printStream.println("Chat history: ");
-                            printStream.println(ChatHistory.getInstance().toString());
+                            printStream.println(ChatHistory.getInstance().toString(user.getCurrentChannel()));
 
                         } else {
 
@@ -101,7 +107,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     }
 
                     //User cmd functionality. Allows user to set a username. Cannot see or send messages to chat without a username
-                    if (message.substring(1, message.length() - 1).equals("user")) {
+                    if (message.equals(COMMAND_SYMBOL + "user")) {
 
                         boolean userNameSet = false;
                         while (!userNameSet) {
@@ -110,10 +116,11 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                                     " and maximum length " + MAX_USERNAME_LENGTH + "characters");
                             String input = scanner.nextLine();
                             String possibleUserName = input.trim();
+                            user.setUserName(possibleUserName);
 
                             if (possibleUserName.length() >= 2 && possibleUserName.length() <= MAX_USERNAME_LENGTH && !possibleUserName.equals(SERVER_USERNAME)) {
 
-                                if (!(UserNameList.checkIfUserExists(possibleUserName))) {
+                                if (!(UsersList.checkIfUserNameExists(user.getUserName()))) {
 
                                     while (true) {
 
@@ -122,9 +129,10 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                                         if (choice.equals("Y") || choice.equals("y")) {
 
-                                            this.userName = possibleUserName;
-                                            UserNameList.addUser(possibleUserName);
-                                            printStream.println("Username set as " + possibleUserName + ", start chatting !");
+                                            user.setUserName(possibleUserName);
+                                            UsersList.addUser(user);
+                                            printStream.println("Username set as " + user.getUserName() + ", start chatting !");
+                                            printStream.println("You are now chatting in: " + user.getCurrentChannel());
                                             userNameSet = true;
 
                                             //Adds this user to the chat history observers
@@ -158,14 +166,44 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         }
                     }
 
+                    //Channel cmd functionality. Shows current channel and all users in it.
+                    if(message.equals(COMMAND_SYMBOL + "channel")) {
+
+                        printStream.println("You are now chatting in: " + user.getCurrentChannel());
+
+                        ArrayList<User> channelUsers = UsersList.getChannelUsersInList(user.getCurrentChannel());
+                        printStream.println("---- Users in channel " + user.getCurrentChannel() + " ----");
+                        for (User user : channelUsers) {
+
+                            printStream.println(user.getUserName());
+                        }
+
+                    }
+
+                    //Join cmd functionality. Lists all channels and allows user to join another channel
+                    if(message.equals(COMMAND_SYMBOL + "join")) {
+                        //TODO: add join command functionality
+                    }
+
+                    //Online cmd functionality. Shows all users online
+                    if(message.equals(COMMAND_SYMBOL + "online")) {
+
+                        printStream.println("---- Users online ----");
+
+                        for(User usr : UsersList.getAllUsersInList()) {
+
+                            printStream.println(usr.getUserName() + " @ " + usr.getCurrentChannel());
+                        }
+                    }
+
                         //Sends message to server
-                    } else if (this.userName != null) {
+                    } else if (!user.getUserName().equals("")) {
 
                         if(!message.equals("")) {
 
                             Calendar calendar = Calendar.getInstance();
                             Date dateTime = calendar.getTime();
-                            ChatMessage msg = new ChatMessage(message, this.userName, dateTime);
+                            ChatMessage msg = new ChatMessage(message, user.getUserName(), dateTime, user.getCurrentChannel());
                             ChatHistory.getInstance().insertMessage(msg);
 
                         } else {
@@ -175,16 +213,15 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                     } else {
 
-                        printStream.println("You don't have a username ! Please set one with the " + COMMAND_SYMBOL +
-                                "user" + COMMAND_SYMBOL + " command.");
+                        printStream.println("You don't have a username ! Please set one with the " + COMMAND_SYMBOL + "user command.");
                     }
                 }
 
             } catch (Exception exception) {
 
-            UserNameList.removeUser(this.userName);
+            UsersList.removeUser(user);
             ChatHistory.getInstance().removeObserver(this);
-            System.out.println("User " + this.userName + " disconnected");
+            System.out.println("User " + user.getUserName() + " disconnected");
         }
     }
 
@@ -196,21 +233,26 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
         HashSet<String> commandSet = new HashSet<>();
 
-        commandSet.add(COMMAND_SYMBOL + "help" + COMMAND_SYMBOL);
-        commandSet.add(COMMAND_SYMBOL + "user" + COMMAND_SYMBOL);
-        commandSet.add(COMMAND_SYMBOL + "history" + COMMAND_SYMBOL);
-        commandSet.add(COMMAND_SYMBOL + "quit" + COMMAND_SYMBOL);
+        commandSet.add(COMMAND_SYMBOL + "help");
+        commandSet.add(COMMAND_SYMBOL + "user");
+        commandSet.add(COMMAND_SYMBOL + "history");
+        commandSet.add(COMMAND_SYMBOL + "channel");
+        commandSet.add(COMMAND_SYMBOL + "join");
+        commandSet.add(COMMAND_SYMBOL + "online");
+        commandSet.add(COMMAND_SYMBOL + "quit");
 
         return commandSet;
     }
 
     /**
      * Updates the client's chat history
-     * @param chatMessage a ChatMessage object. Contains sender, timestamp and message.
+     * @param chatMessage a ChatMessage object. Contains sender, timestamp, channel and message.
      */
     @Override
     public void update(ChatMessage chatMessage) {
 
-        printStream.println(chatMessage);
+        if(chatMessage.getChannel().equals(user.getCurrentChannel()) || chatMessage.getChannel().equals("SERVER")){
+            printStream.println(chatMessage);
+        }
     }
 }

@@ -3,13 +3,12 @@ package ChatHistory;
 
 import ChatHistoryInterfaces.ChatHistoryObservable;
 import ChatHistoryInterfaces.ChatHistoryObserver;
+import ChatMessage.ChatMessage;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
-
-import ChatMessage.ChatMessage;
 
 /**
  * @author ErkHal
@@ -44,18 +43,39 @@ public class ChatHistory implements ChatHistoryObservable {
     }
 
     /**
-     * Prints out the whole chat history to the client
+     * Prints out all chat messages in every channel.
      * @return
      */
     @Override
     public String toString() {
 
+        String allMessages = "";
+        allMessages += "---- CHAT HISTORY START----\r\n";
+
+        for(ChatMessage message : this.messageHistory) {
+
+            allMessages += message + " @" + message.getChannel() + "\r\n";
+        }
+
+        allMessages += "---- END OF CHAT HISTORY ----";
+
+        return allMessages;
+    }
+
+    /**
+     * Prints out the whole chat history of current channel to the user
+     * @return
+     */
+    public String toString(String channel) {
+
         String wholeMessageHistory = "";
-        wholeMessageHistory += "---- START OF CHAT HISTORY ----\n";
+        wholeMessageHistory += "---- CHAT HISTORY @ " + channel + "----\r\n";
 
         for(ChatMessage msg : this.messageHistory) {
 
-            wholeMessageHistory += msg.toString() + "\n";
+            if(msg.getChannel().equals(channel)) {
+                wholeMessageHistory += msg.toString() + "\r\n";
+            }
         }
 
         wholeMessageHistory += "---- END OF CHAT HISTORY ----";
@@ -105,7 +125,7 @@ public class ChatHistory implements ChatHistoryObservable {
         Calendar calendar = Calendar.getInstance();
         Date broadcastTime = calendar.getTime();
 
-        ChatMessage serverMessage = new ChatMessage(message,"SERVER BROADCAST", broadcastTime);
+        ChatMessage serverMessage = new ChatMessage(message,"SERVER BROADCAST", broadcastTime, "SERVER");
         ChatHistory.getInstance().insertMessage(serverMessage);
 
     }
