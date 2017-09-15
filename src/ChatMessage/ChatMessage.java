@@ -12,14 +12,16 @@ public class ChatMessage {
     private String message;
     private String sender;
     private Date sendTime;
+    private String channel;
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM 'at' HH:mm");
 
-    public ChatMessage(String msg, String username, Date timeStamp) {
+    public ChatMessage(String msg, String username, Date timeStamp, String channel) {
 
         this.message = msg;
         this.sender = username;
         this.sendTime = timeStamp;
+        this.channel = channel;
     }
 
     @Override
@@ -27,5 +29,10 @@ public class ChatMessage {
 
         return dateFormat.format(sendTime) + "|" + sender + " : " + this.message;
 
+    }
+
+    public String getChannel() {
+
+        return this.channel;
     }
 }
