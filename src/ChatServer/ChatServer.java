@@ -23,7 +23,7 @@ public class ChatServer {
 
         this.channels = new HashSet<>();
         this.channels.add("Lobby");
-        this.admin = new ServerAdmin("admin", "overlord");
+        this.admin = new ServerAdmin("admin", "1234");
     }
 
     public void serve() {

@@ -10,12 +10,14 @@ public class User {
     private String userName;
     private String currentChannel;
     private boolean adminAccess;
+    private boolean muted;
 
     public User (String userId, String channel){
 
         this.userName = userId;
         this.currentChannel = channel;
         this.adminAccess = false;
+        this.muted = false;
     }
 
     /**
@@ -28,6 +30,23 @@ public class User {
 
     public void setAdminAccess(boolean adminAccess) {
         this.adminAccess = adminAccess;
+    }
+
+    public void toggleMute() {
+
+        this.muted = !muted;
+    }
+
+    public boolean getIsMuted() {
+
+        return this.muted;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+
+        User thatUser = (User) object;
+        return this.userName.equals(thatUser.userName);
     }
 
     @Override
@@ -55,7 +74,7 @@ public class User {
 
     /**
      * Returns username of the User
-     * @return
+     * @return the username of the user
      */
     public String getUserName() {
 

@@ -4,6 +4,8 @@ package ChatHistory;
 import ChatHistoryInterfaces.ChatHistoryObservable;
 import ChatHistoryInterfaces.ChatHistoryObserver;
 import ChatMessage.ChatMessage;
+import CommandInterpreter.CommandInterpreter;
+import User.User;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -115,6 +117,21 @@ public class ChatHistory implements ChatHistoryObservable {
 
         this.observers.remove(observer);
 
+    }
+
+    /**
+     * Removes observer by searching for it's user object.
+     * @param userToBeKicked CommandInterpreter's User object's userName
+     */
+    public void removeObserverByUser(User userToBeKicked) {
+
+        for(ChatHistoryObserver observer : observers) {
+
+            CommandInterpreter CI = (CommandInterpreter) observer;
+            if(CI.getUser().equals(userToBeKicked)) {
+                removeObserver(observer);
+            }
+        }
     }
 
     /**

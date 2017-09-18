@@ -16,10 +16,10 @@ public class ChatMessage {
 
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM 'at' HH:mm");
 
-    public ChatMessage(String msg, String username, Date timeStamp, String channel) {
+    public ChatMessage(String msg, String userName, Date timeStamp, String channel) {
 
         this.message = msg;
-        this.sender = username;
+        this.sender = userName;
         this.sendTime = timeStamp;
         this.channel = channel;
     }

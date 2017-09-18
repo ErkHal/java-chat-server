@@ -88,11 +88,17 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                                 COMMAND_SYMBOL + "create - Create a new channel and connect to that one\r\n" +
                                 COMMAND_SYMBOL + "login - Login as administrator\r\n" +
                                 COMMAND_SYMBOL + "online - Displays every user online\r\n" +
-                                COMMAND_SYMBOL + "quit - Disconnects user from the chat \r\n");
+                                COMMAND_SYMBOL + "quit - Disconnects user from the chat");
 
+                        //admin access commands
                         if(this.user.isAdminAccess()) {
 
-                                printStream.println(COMMAND_SYMBOL + "remove - remove channels.");
+                            printStream.println("---- ADMIN MENU ----");
+                            printStream.println(
+                                    COMMAND_SYMBOL + "remove - remove channels.\r\n" +
+                                    COMMAND_SYMBOL + "kick - kick user");
+                                    //COMMAND_SYMBOL + "mute - prevent user from sending messages");
+
                         }
                     }
 
@@ -129,7 +135,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                             if (possibleUserName.length() >= 2 && possibleUserName.length() <= MAX_USERNAME_LENGTH && !possibleUserName.equals(SERVER_USERNAME)) {
 
-                                if (!(UsersList.checkIfUserNameExists(possibleUserName))) {
+                                if (!(UsersList.getInstance().checkIfUserNameExists(possibleUserName))) {
 
                                     while (true) {
 
@@ -139,7 +145,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                                         if (choice.equals("Y") || choice.equals("y")) {
 
                                             user.setUserName(possibleUserName);
-                                            UsersList.addUser(user);
+                                            UsersList.getInstance().addUser(user);
                                             printStream.println("Username set as " + user.getUserName() + ", start chatting !");
                                             printStream.println("You are now chatting in: " + user.getCurrentChannel());
                                             userNameSet = true;
@@ -180,7 +186,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                         printStream.println("You are now chatting in: " + user.getCurrentChannel());
 
-                        ArrayList<User> channelUsers = UsersList.getChannelUsersInList(user.getCurrentChannel());
+                        ArrayList<User> channelUsers = UsersList.getInstance().getChannelUsersInList(user.getCurrentChannel());
                         printStream.println("---- Users in channel " + user.getCurrentChannel() + " ----");
                         for (User user : channelUsers) {
 
@@ -262,7 +268,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         }
                     }
 
-                    //remove cmd functionality. Allows users to remove channels. ONLY WITH ADMIN PRIVILEGES.
+                    //## ADMIN ## remove cmd functionality. Allows users to remove channels. ONLY WITH ADMIN PRIVILEGES.
                     if(message.equals(COMMAND_SYMBOL + "remove")) {
 
                         if(this.user.isAdminAccess()) {
@@ -283,7 +289,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                                 if (channels.contains(channelToBeRemoved)) {
 
-                                    ArrayList<User> users = new ArrayList<User>(UsersList.getChannelUsersInList(channelToBeRemoved));
+                                    ArrayList<User> users = new ArrayList<User>(UsersList.getInstance().getChannelUsersInList(channelToBeRemoved));
 
                                     for(User channelUser : users) {
 
@@ -309,7 +315,60 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         }
                     }
 
-                    //login cmd functionality. Allows user to login as admin if they are provided credentials for it
+                    //## ADMIN ## kick cmd functionality. Allows admins to kick users from the server. ONLY WITH ADMIN PRIVILEGES
+                    if(message.equals(COMMAND_SYMBOL + "kick")) {
+
+                        if(this.user.isAdminAccess()) {
+                            ArrayList<User> usersList = UsersList.getInstance().getAllUsersInList();
+
+                            boolean commandRunning = true;
+
+                            while (commandRunning) {
+
+                                printStream.println("Select user by index to be kicked or type: " + COMMAND_SYMBOL + " to cancel\r\n" +
+                                        "---- USERS ----");
+
+                                int index = 0;
+                                for (User userInList : usersList) {
+
+                                    if (!this.user.equals(userInList)) {
+                                        printStream.println(" " + index + " : " + userInList.getUserName() + " @ " + userInList.getCurrentChannel());
+                                    }
+                                    index++;
+                                }
+
+                                int kickThisUser = -1;
+
+                                //Convert input to index. If fails, cancels kicking
+                                try {
+                                    String temp = scanner.nextLine();
+                                    kickThisUser = Integer.parseInt(temp);
+                                } catch(Exception e) {
+                                    printStream.println("Invalid input !");
+                                }
+
+                                if(kickThisUser == -1) {
+                                    printStream.println("Kicking canceled");
+                                    break;
+                                }
+
+                                boolean userKicked = UsersList.getInstance().kickUser(usersList.get(index));
+
+                                if (userKicked) {
+                                    printStream.println("User " + kickThisUser + " was kicked !");
+                                    commandRunning = false;
+
+                                } else {
+
+                                    printStream.println("User not found");
+                                }
+                            }
+                        } else {
+                            printStream.println("Access denied");
+                        }
+                    }
+
+                    //## ADMIN ## login cmd functionality. Allows user to login as admin if they are provided credentials for it
                     if(message.equals(COMMAND_SYMBOL + "login")) {
 
                         printStream.println("Username: ");
@@ -334,7 +393,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                         printStream.println("---- Users online ----");
 
-                        for (User usr : UsersList.getAllUsersInList()) {
+                        for (User usr : UsersList.getInstance().getAllUsersInList()) {
 
                             printStream.println(usr.getUserName() + " @ " + usr.getCurrentChannel());
                         }
@@ -349,6 +408,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                     } else {
 
+                        //Send message
                         if (!message.equals("")) {
 
                             Calendar calendar = Calendar.getInstance();
@@ -364,13 +424,17 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                     } else{
 
-                        printStream.println("You don't have a username ! Please set one with the " + COMMAND_SYMBOL + "user command.");
+                        if(!this.user.getIsMuted()) {
+                            printStream.println("You don't have a username ! Please set one with the " + COMMAND_SYMBOL + "user command.");
+                        } else {
+                            printStream.println("You are muted by the administrator.");
+                        }
                     }
                 }
 
             } catch (Exception exception) {
 
-            UsersList.removeUser(user);
+            UsersList.getInstance().removeUser(user);
             ChatHistory.getInstance().removeObserver(this);
             System.out.println("User " + user.getUserName() + " disconnected");
             this.user = null;
@@ -392,11 +456,21 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
         commandSet.add(COMMAND_SYMBOL + "join");
         commandSet.add(COMMAND_SYMBOL + "create");
         commandSet.add(COMMAND_SYMBOL + "remove");
+        commandSet.add(COMMAND_SYMBOL + "kick");
         commandSet.add(COMMAND_SYMBOL + "login");
         commandSet.add(COMMAND_SYMBOL + "online");
         commandSet.add(COMMAND_SYMBOL + "quit");
+        //commandSet.add(COMMAND_SYMBOL + "mute");
 
         return commandSet;
+    }
+
+    /**
+     * Returns this CommandInterpreter's user
+     * @return User object
+     */
+    public User getUser() {
+        return this.user;
     }
 
     /**
