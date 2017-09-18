@@ -85,20 +85,25 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                                 COMMAND_SYMBOL + "history - Displays message history for this channel\r\n" +
                                 COMMAND_SYMBOL + "channel - Displays your current channel and all users in this channel\r\n" +
                                 COMMAND_SYMBOL + "join -  Join another channel with this command\r\n" +
-                                COMMAND_SYMBOL + "create - Create a new channel and connect to that one" +
-                                COMMAND_SYMBOL + "remove - Remove a channel" +
+                                COMMAND_SYMBOL + "create - Create a new channel and connect to that one\r\n" +
+                                COMMAND_SYMBOL + "login - Login as administrator\r\n" +
                                 COMMAND_SYMBOL + "online - Displays every user online\r\n" +
                                 COMMAND_SYMBOL + "quit - Disconnects user from the chat \r\n");
+
+                        if(this.user.isAdminAccess()) {
+
+                                printStream.println(COMMAND_SYMBOL + "remove - remove channels.");
+                        }
                     }
 
-                    //Quit cmd functionality
+                    //quit cmd functionality
                     if (message.equals(COMMAND_SYMBOL + "quit")) {
 
                         printStream.println("Goodbye " + this.user.getUserName() + "!");
                         inputStream.close();
                     }
 
-                    //History cmd functionality. Cannot see history without username.
+                    //history cmd functionality. Cannot see history without username.
                     if (message.equals(COMMAND_SYMBOL + "history")) {
 
                         if (!this.user.getUserName().equals("")) {
@@ -111,7 +116,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         }
                     }
 
-                    //User cmd functionality. Allows user to set a username. Cannot see or send messages to chat without a username
+                    //user cmd functionality. Allows user to set a username. Cannot see or send messages to chat without a username
                     if (message.equals(COMMAND_SYMBOL + "user")) {
 
                         boolean userNameSet = false;
@@ -170,7 +175,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         }
                     }
 
-                    //Channel cmd functionality. Shows current channel and all users in it.
+                    //channel cmd functionality. Shows current channel and all users in it.
                     if (message.equals(COMMAND_SYMBOL + "channel")) {
 
                         printStream.println("You are now chatting in: " + user.getCurrentChannel());
@@ -184,7 +189,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                     }
 
-                    //Join cmd functionality. Lists all channels and allows user to join another channel
+                    //join cmd functionality. Lists all channels and allows user to join another channel
                     if (message.equals(COMMAND_SYMBOL + "join")) {
                         ArrayList<String> channels = currentServer.getChannels();
 
@@ -257,12 +262,74 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         }
                     }
 
-                    //remove cmd functionality. Allows users to remove channels.
+                    //remove cmd functionality. Allows users to remove channels. ONLY WITH ADMIN PRIVILEGES.
                     if(message.equals(COMMAND_SYMBOL + "remove")) {
-                        //TODO: add functionality. command has already been added.
+
+                        if(this.user.isAdminAccess()) {
+
+                            printStream.println("Which channel do you want to remove ?");
+
+                            boolean commandRunning = true;
+                            while(commandRunning) {
+                                ArrayList<String> channels = this.currentServer.getChannels();
+
+                                for (String channel : channels) {
+
+                                    printStream.println(channel);
+                                }
+
+                                String temp = scanner.nextLine();
+                                String channelToBeRemoved = temp.trim();
+
+                                if (channels.contains(channelToBeRemoved)) {
+
+                                    ArrayList<User> users = new ArrayList<User>(UsersList.getChannelUsersInList(channelToBeRemoved));
+
+                                    for(User channelUser : users) {
+
+                                        //Transfers all users in removed channel to the default channel
+                                        channelUser.setCurrentChannel(this.currentServer.getChannels().get(0));
+
+                                    }
+
+                                    this.currentServer.removeChannel(channelToBeRemoved);
+                                    ChatHistory.getInstance().broadcastServerMessage("Channel " + channelToBeRemoved + " removed. All users transferred to " +
+                                                                                    this.currentServer.getChannels().get(0));
+                                    printStream.println("Channel " + channelToBeRemoved + " removed !");
+                                    commandRunning = false;
+
+                                } else {
+
+                                    printStream.println("Invalid choice");
+                                }
+                            }
+                        } else {
+
+                            printStream.println("Access denied !");
+                        }
                     }
 
-                    //Online cmd functionality. Shows all users online
+                    //login cmd functionality. Allows user to login as admin if they are provided credentials for it
+                    if(message.equals(COMMAND_SYMBOL + "login")) {
+
+                        printStream.println("Username: ");
+                        String userName = scanner.nextLine();
+
+                        printStream.println("Password: ");
+                        String passwd = scanner.nextLine();
+
+                        if(this.currentServer.tryAdminLogin(userName, passwd)) {
+
+                            printStream.println("Administrator access granted.");
+                            this.user.setAdminAccess(true);
+
+                        } else {
+
+                            printStream.println("Invalid username and password !");
+                        }
+                    }
+
+                    //Online cmd functionality. Shows all users online and their channels
                     if (message.equals(COMMAND_SYMBOL + "online")) {
 
                         printStream.println("---- Users online ----");
@@ -325,6 +392,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
         commandSet.add(COMMAND_SYMBOL + "join");
         commandSet.add(COMMAND_SYMBOL + "create");
         commandSet.add(COMMAND_SYMBOL + "remove");
+        commandSet.add(COMMAND_SYMBOL + "login");
         commandSet.add(COMMAND_SYMBOL + "online");
         commandSet.add(COMMAND_SYMBOL + "quit");
 

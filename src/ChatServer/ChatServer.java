@@ -16,12 +16,14 @@ import java.util.HashSet;
 public class ChatServer {
 
     //Set for storing server's channels
-    HashSet<String> channels;
+    private HashSet<String> channels;
+    private ServerAdmin admin;
 
     public ChatServer() {
 
         this.channels = new HashSet<>();
         this.channels.add("Lobby");
+        this.admin = new ServerAdmin("admin", "overlord");
     }
 
     public void serve() {
@@ -90,5 +92,10 @@ public class ChatServer {
     public ArrayList<String> getChannels() {
 
         return new ArrayList<String>(this.channels);
+    }
+
+    public boolean tryAdminLogin(String usrName, String passwd) {
+
+        return admin.checkCredentials(usrName, passwd);
     }
 }
