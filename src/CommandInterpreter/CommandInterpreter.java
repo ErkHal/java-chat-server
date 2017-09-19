@@ -7,6 +7,7 @@ import ChatServer.ChatServer;
 import User.User;
 import UsersList.UsersList;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.*;
@@ -25,6 +26,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
     private HashSet<String> commandSet;
     private User user;
     private ChatServer currentServer;
+    private boolean running;
 
     //Command recognition symbol. A command has to start and end with this symbol.
     private static final char COMMAND_SYMBOL = '%';
@@ -48,6 +50,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
         this.commandSet = loadCommandSet();
         this.user = new User("", defaultChannel);
         this.currentServer = currentServer;
+        this.running = true;
 
     }
 
@@ -56,7 +59,6 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
      */
     public void run() {
 
-        boolean running = true;
         boolean helpDisplayed = false;
 
         try {
@@ -145,9 +147,9 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                                         if (choice.equals("Y") || choice.equals("y")) {
 
                                             user.setUserName(possibleUserName);
-                                            UsersList.getInstance().addUser(user);
-                                            printStream.println("Username set as " + user.getUserName() + ", start chatting !");
-                                            printStream.println("You are now chatting in: " + user.getCurrentChannel());
+                                            UsersList.getInstance().addUser(this);
+                                            printStream.println("Username set as " + this.user.getUserName() + ", start chatting !");
+                                            printStream.println("You are now chatting in: " + this.user.getCurrentChannel());
                                             userNameSet = true;
 
                                             //Adds this user to the chat history observers
@@ -184,13 +186,13 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     //channel cmd functionality. Shows current channel and all users in it.
                     if (message.equals(COMMAND_SYMBOL + "channel")) {
 
-                        printStream.println("You are now chatting in: " + user.getCurrentChannel());
+                        printStream.println("You are now chatting in: " + this.user.getCurrentChannel());
 
-                        ArrayList<User> channelUsers = UsersList.getInstance().getChannelUsersInList(user.getCurrentChannel());
-                        printStream.println("---- Users in channel " + user.getCurrentChannel() + " ----");
-                        for (User user : channelUsers) {
+                        ArrayList<CommandInterpreter> channelUsers = UsersList.getInstance().getChannelUsersInList(this.user.getCurrentChannel());
+                        printStream.println("---- Users in channel " + this.user.getCurrentChannel() + " ----");
+                        for (CommandInterpreter user : channelUsers) {
 
-                            printStream.println(user.getUserName());
+                            printStream.println(user.getUser().getUserName());
                         }
 
                     }
@@ -289,12 +291,13 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                                 if (channels.contains(channelToBeRemoved)) {
 
-                                    ArrayList<User> users = new ArrayList<User>(UsersList.getInstance().getChannelUsersInList(channelToBeRemoved));
+                                    ArrayList<CommandInterpreter> users = new ArrayList<CommandInterpreter>
+                                                                            (UsersList.getInstance().getChannelUsersInList(channelToBeRemoved));
 
-                                    for(User channelUser : users) {
+                                    for(CommandInterpreter channelUser : users) {
 
                                         //Transfers all users in removed channel to the default channel
-                                        channelUser.setCurrentChannel(this.currentServer.getChannels().get(0));
+                                        channelUser.getUser().setCurrentChannel(this.currentServer.getChannels().get(0));
 
                                     }
 
@@ -319,7 +322,8 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     if(message.equals(COMMAND_SYMBOL + "kick")) {
 
                         if(this.user.isAdminAccess()) {
-                            ArrayList<User> usersList = UsersList.getInstance().getAllUsersInList();
+
+                            ArrayList<CommandInterpreter> usersList = UsersList.getInstance().getAllUsersInList();
 
                             boolean commandRunning = true;
 
@@ -329,10 +333,12 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                                         "---- USERS ----");
 
                                 int index = 0;
-                                for (User userInList : usersList) {
+                                for (CommandInterpreter userInList : usersList) {
 
-                                    if (!this.user.equals(userInList)) {
-                                        printStream.println(" " + index + " : " + userInList.getUserName() + " @ " + userInList.getCurrentChannel());
+                                    User user = userInList.getUser();
+                                    if (!this.user.equals(user)) {
+                                        printStream.println(" " + index + " : " + user.getUserName() + " @ "
+                                                                                + user.getCurrentChannel());
                                     }
                                     index++;
                                 }
@@ -341,21 +347,28 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                                 //Convert input to index. If fails, cancels kicking
                                 try {
+
                                     String temp = scanner.nextLine();
                                     kickThisUser = Integer.parseInt(temp);
+
                                 } catch(Exception e) {
                                     printStream.println("Invalid input !");
                                 }
 
+                                boolean userKicked = false;
+
                                 if(kickThisUser == -1) {
                                     printStream.println("Kicking canceled");
                                     break;
+
+                                } else {
+
+                                    System.out.println("#### USER ####" + usersList.get(kickThisUser).getUser().getUserName());
+                                    userKicked = UsersList.getInstance().kickUser(usersList.get(kickThisUser));
+
                                 }
-
-                                boolean userKicked = UsersList.getInstance().kickUser(usersList.get(index));
-
                                 if (userKicked) {
-                                    printStream.println("User " + kickThisUser + " was kicked !");
+                                    printStream.println("User was kicked !");
                                     commandRunning = false;
 
                                 } else {
@@ -393,9 +406,9 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
 
                         printStream.println("---- Users online ----");
 
-                        for (User usr : UsersList.getInstance().getAllUsersInList()) {
+                        for (CommandInterpreter usr : UsersList.getInstance().getAllUsersInList()) {
 
-                            printStream.println(usr.getUserName() + " @ " + usr.getCurrentChannel());
+                            printStream.println(usr.getUser().getUserName() + " @ " + usr.getUser().getCurrentChannel());
                         }
                     }
 
@@ -409,35 +422,34 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     } else {
 
                         //Send message
-                        if (!message.equals("")) {
+                        if (!message.equals("") && !this.user.getIsMuted()) {
 
                             Calendar calendar = Calendar.getInstance();
                             Date dateTime = calendar.getTime();
-                            ChatMessage msg = new ChatMessage(message, user.getUserName(), dateTime, user.getCurrentChannel());
+                            ChatMessage msg = new ChatMessage(message, this.user.getUserName(), dateTime, this.user.getCurrentChannel());
                             ChatHistory.getInstance().insertMessage(msg);
 
                         } else {
 
-                            printStream.println("Cannot send an empty message");
+                            if(this.user.getIsMuted()) {
+                                printStream.println("You are muted by the administrator");
+                            } else {
+                                printStream.println("Cannot send an empty message");
+                            }
                         }
                     }
 
-                    } else{
+                    } else {
 
-                        if(!this.user.getIsMuted()) {
-                            printStream.println("You don't have a username ! Please set one with the " + COMMAND_SYMBOL + "user command.");
-                        } else {
-                            printStream.println("You are muted by the administrator.");
-                        }
+                        printStream.println("You don't have a username ! Please set one with the " + COMMAND_SYMBOL + "user command.");
                     }
                 }
 
             } catch (Exception exception) {
 
-            UsersList.getInstance().removeUser(user);
-            ChatHistory.getInstance().removeObserver(this);
-            System.out.println("User " + user.getUserName() + " disconnected");
-            this.user = null;
+            this.quit();
+            System.out.println("User " + this.user.getUserName() + " disconnected");
+            //this.user = null;
         }
     }
 
@@ -483,5 +495,19 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
         if(chatMessage.getChannel().equals(user.getCurrentChannel()) || chatMessage.getChannel().equals("SERVER")){
             printStream.println(chatMessage);
         }
+    }
+
+    public void quit() {
+
+        UsersList.getInstance().removeUser(this);
+        ChatHistory.getInstance().removeObserver(this);
+        this.running = false;
+        try {
+            this.inputStream.close();
+        } catch(IOException io) {
+            System.out.println("Closed input stream of " + this.getUser().getUserName());
+        }
+        this.printStream.close();
+
     }
 }

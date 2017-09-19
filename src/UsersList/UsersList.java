@@ -1,14 +1,14 @@
 package UsersList;
 
 import ChatHistory.ChatHistory;
-import User.User;
+import CommandInterpreter.CommandInterpreter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 
 public class UsersList {
 
-    private HashSet<User> usersList;
+    private HashSet<CommandInterpreter> usersList;
 
     private static UsersList ourInstance = new UsersList();
 
@@ -18,41 +18,24 @@ public class UsersList {
 
     private UsersList() {
 
-        this.usersList = new HashSet<User>();
+        this.usersList = new HashSet<CommandInterpreter>();
     }
 
-    public void addUser(User usr) {
+    public void addUser(CommandInterpreter usr) {
 
         UsersList.getInstance().usersList.add(usr);
-        ChatHistory.getInstance().broadcastServerMessage("User " + usr.getUserName() + " connected");
+        ChatHistory.getInstance().broadcastServerMessage("User " + usr.getUser().getUserName() + " connected");
     }
 
-    public void removeUser(User usr) {
+    public void removeUser(CommandInterpreter usr) {
 
         UsersList.getInstance().usersList.remove(usr);
-        ChatHistory.getInstance().broadcastServerMessage("User " + usr.getUserName() + " disconnected");
+        ChatHistory.getInstance().broadcastServerMessage("User " + usr.getUser().getUserName() + " disconnected");
     }
-
-
-    /**
-     * Checks the existence of a user in the set.
-     * @param user
-     * @return
-
-    public static boolean checkIfUserExists(User user) {
-
-        if(UsersList.getInstance().usersList.contains(user)) {
-
-            return true;
-
-        } else {
-
-            return false;
-        }
-    } */
 
     /**
      * Checks if userNameExists already. Prevents duplicate names.
+     *
      * @param userName
      * @return
      */
@@ -60,9 +43,9 @@ public class UsersList {
 
         boolean exists = false;
 
-        for(User user : getAllUsersInList()) {
+        for (CommandInterpreter user : getAllUsersInList()) {
 
-            if(user.getUserName().equals(userName)) {
+            if (user.getUser().getUserName().equals(userName)) {
                 exists = true;
             }
         }
@@ -72,42 +55,55 @@ public class UsersList {
 
     /**
      * Returns users in an arraylist for easier handling
+     *
      * @return All connected users
      */
-    public ArrayList<User> getAllUsersInList() {
+    public ArrayList<CommandInterpreter> getAllUsersInList() {
 
-        return new ArrayList<User>(UsersList.getInstance().usersList);
+        return new ArrayList<CommandInterpreter>(UsersList.getInstance().usersList);
     }
 
     /**
      * Returns users in a particular channel
+     *
      * @param channel Channel to be searched with
      * @return ArrayList of users in this channel
      */
-    public ArrayList<User> getChannelUsersInList(String channel) {
+    public ArrayList<CommandInterpreter> getChannelUsersInList(String channel) {
 
-        ArrayList<User> channelUsers = new ArrayList<User>();
+        ArrayList<CommandInterpreter> channelUsers = new ArrayList<>();
 
-        for(User user : getAllUsersInList()) {
+        for (CommandInterpreter user : getAllUsersInList()) {
 
-            if(user.getCurrentChannel().equals(channel)) {
+            if (user.getUser().getCurrentChannel().equals(channel)) {
                 channelUsers.add(user);
             }
         }
         return channelUsers;
     }
 
-    public boolean kickUser(User userToBeKicked) {
+    /**
+     * Kicks the given user from the list
+     * @param userToBeKicked
+     * @return True if kicking
+     */
+    public boolean kickUser(CommandInterpreter userToBeKicked) {
 
-        for (User userInList : getAllUsersInList()) {
+        boolean kicked;
 
-            if(userInList.equals(userToBeKicked)) {
-                removeUser(userToBeKicked);
-                ChatHistory.getInstance().removeObserverByUser(userToBeKicked);
-                return true;
-            }
+        ChatHistory.getInstance().broadcastServerMessage("User " + userToBeKicked.getUser().getUserName() + " was kicked from the server");
+
+        if (this.usersList.contains(userToBeKicked)) {
+
+            this.usersList.remove(userToBeKicked);
+            ChatHistory.getInstance().removeObserver(userToBeKicked);
+            kicked = true;
+            userToBeKicked.quit();
+
+        } else {
+            kicked = false;
         }
 
-        return false;
+        return kicked;
     }
 }
