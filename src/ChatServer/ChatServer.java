@@ -30,7 +30,8 @@ public class ChatServer {
 
         try {
 
-            ServerSocket server = new ServerSocket(0, 3);
+            //Fixed server port for the sake of testing
+            ServerSocket server = new ServerSocket(1337, 3);
             ChatConsole chatConsole = new ChatConsole();
             chatConsole.register();
 
