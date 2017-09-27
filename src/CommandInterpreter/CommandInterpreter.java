@@ -29,7 +29,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
     private boolean running;
 
     //Command recognition symbol. A command has to start and end with this symbol.
-    private static final char COMMAND_SYMBOL = '%';
+    private static final char COMMAND_SYMBOL = '!';
 
     //Username reserved for server broadcast
     private static final String SERVER_USERNAME = "SYSTEM BROADCAST";

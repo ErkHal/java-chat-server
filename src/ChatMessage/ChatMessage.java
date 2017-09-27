@@ -27,7 +27,7 @@ public class ChatMessage {
     @Override
     public String toString() {
 
-        return dateFormat.format(sendTime) + "|" + sender + " : " + this.message;
+        return dateFormat.format(sendTime) + " | " + sender + " : " + this.message;
 
     }
 

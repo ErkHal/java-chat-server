@@ -37,7 +37,7 @@ public class ChatHistory implements ChatHistoryObservable {
      * Inserts message to chat history and updates chat
      * @param message
      */
-    public void insertMessage(ChatMessage message) {
+    public synchronized void insertMessage(ChatMessage message) {
 
         messageHistory.add(message);
         notifyObservers(message);
@@ -48,7 +48,7 @@ public class ChatHistory implements ChatHistoryObservable {
      * @return
      */
     @Override
-    public String toString() {
+    public synchronized String toString() {
 
         String allMessages = "";
         allMessages += "---- CHAT HISTORY START----\r\n";
@@ -67,7 +67,7 @@ public class ChatHistory implements ChatHistoryObservable {
      * Prints out the whole chat history of current channel to the user
      * @return
      */
-    public String toString(String channel) {
+    public synchronized String toString(String channel) {
 
         String wholeMessageHistory = "";
         wholeMessageHistory += "---- CHAT HISTORY @ " + channel + "----\r\n";
@@ -87,7 +87,7 @@ public class ChatHistory implements ChatHistoryObservable {
      * Tells all the users to update their chat with the newest message
      */
     @Override
-    public void notifyObservers(ChatMessage chatMessage) {
+    public synchronized void notifyObservers(ChatMessage chatMessage) {
 
         //System.out.println("Notifying all observers about the change in the chat history");
 
@@ -101,7 +101,7 @@ public class ChatHistory implements ChatHistoryObservable {
      * @param observer
      */
     @Override
-    public void addObserver(ChatHistoryObserver observer) {
+    public synchronized void addObserver(ChatHistoryObserver observer) {
 
         this.observers.add(observer);
 
@@ -112,7 +112,7 @@ public class ChatHistory implements ChatHistoryObservable {
      * @param observer
      */
     @Override
-    public void removeObserver(ChatHistoryObserver observer) {
+    public synchronized void removeObserver(ChatHistoryObserver observer) {
 
         this.observers.remove(observer);
 
