@@ -493,7 +493,9 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
     public void update(ChatMessage chatMessage) {
 
         if(chatMessage.getChannel().equals(user.getCurrentChannel()) || chatMessage.getChannel().equals("SERVER")){
-            printStream.println(chatMessage);
+            if(chatMessage.getSender().equals(this.user.getUserName())) {
+                chatMessage.setSender("OWN_MESSAGE");
+            }
         }
     }
 

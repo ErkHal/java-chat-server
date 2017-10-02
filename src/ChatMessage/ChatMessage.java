@@ -27,12 +27,22 @@ public class ChatMessage {
     @Override
     public String toString() {
 
-        return dateFormat.format(sendTime) + " | " + sender + " : " + this.message;
+        return dateFormat.format(sendTime) + "£" + sender + "£" + this.message;
 
     }
 
     public String getChannel() {
 
         return this.channel;
+    }
+
+    public String getSender() {
+
+        return this.sender;
+    }
+
+    public void setSender(String newSender) {
+
+        this.sender = newSender;
     }
 }
