@@ -81,7 +81,6 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     if (message.equals(COMMAND_SYMBOL + "help")) {
 
                         printStream.println("\r\n        All commands and their explanations: \r\n" +
-                                "------------------------------------------------------------------\r\n" +
                                 COMMAND_SYMBOL + "help - Displays this list of commands\r\n" +
                                 COMMAND_SYMBOL + "user - Sets username. Must be set before messaging !\r\n" +
                                 COMMAND_SYMBOL + "history - Displays message history for this channel\r\n" +
@@ -95,7 +94,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         //admin access commands
                         if(this.user.isAdminAccess()) {
 
-                            printStream.println("---- ADMIN MENU ----");
+                            printStream.println("Admin Commands : ");
                             printStream.println(
                                     COMMAND_SYMBOL + "remove - remove channels.\r\n" +
                                     COMMAND_SYMBOL + "kick - kick user");
@@ -131,7 +130,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         while (!userNameSet) {
 
                             printStream.println("Give desired username, has to be at least two characters long" +
-                                    " and maximum length " + MAX_USERNAME_LENGTH + "characters");
+                                    " and maximum length of " + MAX_USERNAME_LENGTH + " characters");
                             String input = scanner.nextLine();
                             String possibleUserName = input.trim();
 
@@ -189,7 +188,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                         printStream.println("You are now chatting in: " + this.user.getCurrentChannel());
 
                         ArrayList<CommandInterpreter> channelUsers = UsersList.getInstance().getChannelUsersInList(this.user.getCurrentChannel());
-                        printStream.println("---- Users in channel " + this.user.getCurrentChannel() + " ----");
+                        printStream.println("Users in channel " + this.user.getCurrentChannel() + " :");
                         for (CommandInterpreter user : channelUsers) {
 
                             printStream.println(user.getUser().getUserName());
@@ -201,11 +200,10 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     if (message.equals(COMMAND_SYMBOL + "join")) {
                         ArrayList<String> channels = currentServer.getChannels();
 
-                        printStream.println("---- CHANNELS ----");
+                        printStream.println("All Channels : ");
                         for (String channel : channels) {
                             printStream.println(channel);
                         }
-                        printStream.println("------------------");
 
                         boolean commandRunning = true;
                         while (commandRunning) {
@@ -330,7 +328,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                             while (commandRunning) {
 
                                 printStream.println("Select user by index to be kicked or type: " + COMMAND_SYMBOL + " to cancel\r\n" +
-                                        "---- USERS ----");
+                                        "USERS :");
 
                                 int index = 0;
                                 for (CommandInterpreter userInList : usersList) {
@@ -404,7 +402,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     //Online cmd functionality. Shows all users online and their channels
                     if (message.equals(COMMAND_SYMBOL + "online")) {
 
-                        printStream.println("---- Users online ----");
+                        printStream.println("Users Online : " + UsersList.getInstance().getAllUsersInList().size());
 
                         for (CommandInterpreter usr : UsersList.getInstance().getAllUsersInList()) {
 
@@ -492,9 +490,16 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
     @Override
     public void update(ChatMessage chatMessage) {
 
-        if(chatMessage.getChannel().equals(user.getCurrentChannel()) || chatMessage.getChannel().equals("SERVER")){
+        if(chatMessage.getChannel().equals(this.user.getCurrentChannel()) || chatMessage.getChannel().equals("SERVER")){
+
             if(chatMessage.getSender().equals(this.user.getUserName())) {
-                chatMessage.setSender("OWN_MESSAGE");
+
+                ChatMessage temp = new ChatMessage(chatMessage.getMessage(), "OWN_MESSAGE", chatMessage.getTimeStamp() , chatMessage.getChannel());
+
+                this.printStream.println(temp);
+
+            } else {
+                this.printStream.println(chatMessage.toString());
             }
         }
     }

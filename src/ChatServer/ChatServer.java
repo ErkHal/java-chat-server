@@ -43,7 +43,7 @@ public class ChatServer {
 
                 //Gets the input and output streams from the connected user's socket.
                 CommandInterpreter CI = new CommandInterpreter(connectedUser.getInputStream(),
-                        new PrintStream(connectedUser.getOutputStream(), true), getChannels().get(0), this);
+                        new PrintStream(connectedUser.getOutputStream(), true), getDefaultChannel(), this);
                 Thread userThread = new Thread(CI);
 
                 //Initializes new thread for the connected user.
@@ -95,6 +95,29 @@ public class ChatServer {
         return new ArrayList<String>(this.channels);
     }
 
+    /**
+     * Returns default channel
+     * @return
+     */
+    public String getDefaultChannel() {
+
+        String defaultChannel = null;
+
+        for (String chn : channels) {
+
+            if(chn.equals("Lobby"))
+                defaultChannel = chn;
+        }
+
+        return defaultChannel;
+    }
+
+    /**
+     * Allows login as admin to allow channel removal and user kicking
+     * @param usrName
+     * @param passwd
+     * @return
+     */
     public boolean tryAdminLogin(String usrName, String passwd) {
 
         return admin.checkCredentials(usrName, passwd);

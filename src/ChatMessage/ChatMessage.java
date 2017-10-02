@@ -14,7 +14,7 @@ public class ChatMessage {
     private Date sendTime;
     private String channel;
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM 'at' HH:mm");
+    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
 
     public ChatMessage(String msg, String userName, Date timeStamp, String channel) {
 
@@ -41,8 +41,13 @@ public class ChatMessage {
         return this.sender;
     }
 
-    public void setSender(String newSender) {
+    public Date getTimeStamp() {
 
-        this.sender = newSender;
+        return this.sendTime;
+    }
+
+    public String getMessage() {
+
+        return this.message;
     }
 }
