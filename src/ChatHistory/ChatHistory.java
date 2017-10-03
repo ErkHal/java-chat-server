@@ -4,7 +4,6 @@ package ChatHistory;
 import ChatHistoryInterfaces.ChatHistoryObservable;
 import ChatHistoryInterfaces.ChatHistoryObserver;
 import ChatMessage.ChatMessage;
-import User.User;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -51,14 +50,14 @@ public class ChatHistory implements ChatHistoryObservable {
     public synchronized String toString() {
 
         String allMessages = "";
-        allMessages += "---- CHAT HISTORY START----\r\n";
+        allMessages += "CHAT HISTORY START\r\n";
 
         for(ChatMessage message : this.messageHistory) {
 
             allMessages += message + " @" + message.getChannel() + "\r\n";
         }
 
-        allMessages += "---- END OF CHAT HISTORY ----";
+        allMessages += "END OF CHAT HISTORY";
 
         return allMessages;
     }
@@ -70,7 +69,7 @@ public class ChatHistory implements ChatHistoryObservable {
     public synchronized String toString(String channel) {
 
         String wholeMessageHistory = "";
-        wholeMessageHistory += "---- CHAT HISTORY @ " + channel + "----\r\n";
+        wholeMessageHistory += "CHAT HISTORY @ " + channel + " \r\n";
 
         for(ChatMessage msg : this.messageHistory) {
 
@@ -79,7 +78,7 @@ public class ChatHistory implements ChatHistoryObservable {
             }
         }
 
-        wholeMessageHistory += "---- END OF CHAT HISTORY ----";
+        wholeMessageHistory += "END OF CHAT HISTORY";
         return wholeMessageHistory;
     }
 
@@ -116,22 +115,6 @@ public class ChatHistory implements ChatHistoryObservable {
 
         this.observers.remove(observer);
 
-    }
-
-    /**
-     * Removes observer by searching for it's user object.
-     * @param userToBeKicked CommandInterpreter's User object's userName
-     */
-    public void removeObserverByUser(User userToBeKicked) {
-
-        ChatHistoryObserver kickedUser = (ChatHistoryObserver) userToBeKicked;
-
-        if(observers.contains(kickedUser)) {
-
-            observers.remove(kickedUser);
-        }
-
-        System.out.println("Removed " + userToBeKicked.getUserName());
     }
 
     /**
