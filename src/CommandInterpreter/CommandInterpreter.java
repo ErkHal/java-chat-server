@@ -413,7 +413,7 @@ public class CommandInterpreter implements Runnable, ChatHistoryObserver {
                     //Sends message to channel if user wasn't trying to input a command
                 } else if (!user.getUserName().equals("")) {
 
-                    if (message.contains("" + COMMAND_SYMBOL)) {
+                    if (message.startsWith("" + COMMAND_SYMBOL)) {
 
                         printStream.println("Were you trying to input a command ? Commands start with the " + COMMAND_SYMBOL + " character.");
 
